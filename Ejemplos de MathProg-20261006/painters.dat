@@ -1,0 +1,22 @@
+data;
+
+set HOUSES := AZUL ROJA BLANCA;
+set WORKERS := TINGUARO GUMERSINDO NICOzcsdsaassdfsdfdsvcxvxcvxcvxcxvxcvxcvxcvxcassass
+
+            
+param MAX_WORK :=
+    TINGUARO     12
+    GUMERSINDO   10
+    NICOLASA     9;
+
+param LABOR_COST :=
+    TINGUARO    120
+    GUMERSINDO  100
+    NICOLASA    115;
+
+param PAINT_TIME: AZUL ROJA BLANCA :=
+      TINGUARO       5    7    6
+      GUMERSINDO     4    6    8
+      NICOLASA       3    5    4;
+      
+end;

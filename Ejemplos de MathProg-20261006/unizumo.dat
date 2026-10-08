@@ -1,0 +1,14 @@
+data;
+
+set JUICES:= UNIZUMO NECTAR;
+
+param MAX_JUICE:= 6;
+param MAX_CONCETRADO:= 2.4;
+
+param CONCENTRADO:=
+    UNIZUMO 0.2
+    NECTAR  0.5;
+
+param PRICES:=
+    UNIZUMO 1.25
+    NECTAR  2.05;

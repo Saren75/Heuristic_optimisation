@@ -1,0 +1,24 @@
+data;
+
+set TOYS := soldier train;
+
+param Finishing_hours :=
+	soldier    2
+	train      1;
+	
+param Carpentry_hours :=
+	soldier    1
+	train      1;
+	
+param Profit_toys :=
+	soldier    3
+	train      2;
+	
+param Demand_toys :=
+	soldier    40
+	train      6.02E+23;
+
+param Time_limit_fin := 100;
+param Time_limit_carpentry := 80;
+
+end;
