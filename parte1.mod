@@ -26,16 +26,18 @@ var x {k in CAJAS, i in FILAS, j in COLUMNAS} binary; # variable que nos da 1 si
 
 /*Funcion objetivo */
 
-minimize COSTE_TOTAL_MEDIO: 1/n * sum {i in FILAS, j in COLUMNAS, t in i+1..l} P[t,j]; #suma del coste de todas las cajas entre el numero de estas
+minimize COSTE_TOTAL_MEDIO: 1/n * sum {i in FILAS, j in COLUMNAS, t in i+1..l} P[t,j]; #la funcion a minimizar es la suma del coste de todas las cajas entre el numero de estas
 
 
 /*Restricciones*/
-s.t. cajaporhueco {i in FILAS, j in COLUMNAS}: sum{k in CAJAS} x[k,i,j] = 1 ;
-s.t. huecoporcaja {k in CAJAS}: sum{i in FILAS, j in COLUMNAS} x[k,i,j] = 1 ;
-s.t. defprioridad {i in FILAS, j in COLUMNAS}: P[i,j] = sum {k in CAJAS} prioridad[k]*x[k,i,j];
-s.t. Orden { i in 1.. l-1, j in 1..l }: P[i,j] >= P[i+1,j];
+s.t. cajaporhueco {i in FILAS, j in COLUMNAS}: sum{k in CAJAS} x[k,i,j] = 1 ;#restriccion que hace que haya exactamente una caja en cada hueco asi no hay huecos vacios
+s.t. huecoporcaja {k in CAJAS}: sum{i in FILAS, j in COLUMNAS} x[k,i,j] = 1 ;#restriccion que hace que cada caja este en un hueco solo, no en varios huecos a la vez
+s.t. defprioridad {i in FILAS, j in COLUMNAS}: P[i,j] = sum {k in CAJAS} prioridad[k]*x[k,i,j]; # restriccion para la variable P, es la regla que define la variable
+s.t. Orden { i in 1.. l-1, j in 1..l }: P[i,j] >= P[i+1,j];# restriccion que define la regla de orden por la que en una columna las cajas con mayor n de prioridad deben estar al fondo.
+
 
 /*Resolver*/
 solve;
 display COSTE_TOTAL_MEDIO;
 end;
+
