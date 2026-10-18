@@ -1,0 +1,35 @@
+Problem:    monedas
+Rows:       4
+Columns:    3 (3 integer, 0 binary)
+Non-zeros:  11
+Status:     INTEGER OPTIMAL
+Objective:  valor_total = 3500 (MAXimum)
+
+   No.   Row name        Activity     Lower bound   Upper bound
+------ ------------    ------------- ------------- -------------
+     1 valor_total              3500                             
+     2 MIN_FABRICADAS
+                                1600          1600               
+     3 COBRE_USADO              9000                        9000 
+     4 LATON_USADO              6000                        6000 
+
+   No. Column name       Activity     Lower bound   Upper bound
+------ ------------    ------------- ------------- -------------
+     1 fabricadas[UNO]
+                    *            600             0               
+     2 fabricadas[DOS]
+                    *            700             0               
+     3 fabricadas[CINCO]
+                    *            300             0               
+
+Integer feasibility conditions:
+
+KKT.PE: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+KKT.PB: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+End of output

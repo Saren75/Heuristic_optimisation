@@ -1,0 +1,19 @@
+data;
+
+set MONEDAS := UNO DOS CINCO;
+
+param COBRE := 
+	UNO    4
+	DOS    3
+	CINCO  15;
+param LATON :=
+	UNO    3
+	DOS    6
+	CINCO  0;
+param VALOR :=
+	UNO    1
+	DOS    2
+	CINCO  5;
+param MIN_MONEDAS := 1600;
+param MAX_COBRE := 9000;
+param MAX_LATON := 6000;
