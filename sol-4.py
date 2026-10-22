@@ -4,12 +4,12 @@ import re
 import os
 
 if len(sys.argv) != 3:
-    print("Uso: python sol-4.py <fichero_in> <fichero_dat")
+    print("Uso: python sol-4.py <fichero_in> <fichero_dat>")
     sys.exit(1)
 archivo_in = sys.argv[1]
 archivo_dat = sys.argv[2]
 
-nombre_archivo = os.pàth.splitext(archivo_in)[0]
+nombre_archivo = os.path.splitext(archivo_in)[0]
 archivo_out = f"{nombre_archivo}.out"
 
 with open(archivo_in, "r",encoding="utf-8") as fichero:
@@ -24,13 +24,28 @@ with open(archivo_in, "r",encoding="utf-8") as fichero:
     prioridades_cajas = [int(x) for x in fichero.readline().strip().split()]
     pesos_cajas = [int(x) for x in fichero.readline().strip().split()]
     capacidades_cajas = [int(x) for x in fichero.readline().strip().split()]
-
+    n = len(prioridades_cajas)
 with open(archivo_dat, "w", encoding="utf-8") as f_dat:
     f_dat.write(f"param l := {l};\n")
     f_dat.write(f"param h := {h};\n")
     f_dat.write(f"param P := {P};\n")
-   
-comando_glpk = ["glpsol", "-m", "parte_4.mod", "-d", archivo_dat]    
+    f_dat.write(f"param n := {n};\n\n")
+
+    f_dat.write("param p := \n")
+    for i, val in enumerate(prioridades_cajas, 1):
+        f_dat.write(f"  {i} {val}\n")
+    f_dat.write(";\n\n")
+    
+    f_dat.write("param w := \n")
+    for i, val in enumerate(pesos_cajas, 1):
+        f_dat.write(f"  {i} {val}\n")
+    f_dat.write(";\n\n")
+    
+    f_dat.write("param gamma := \n")
+    for i, val in enumerate(capacidades_cajas, 1):
+        f_dat.write(f"  {i} {val}\n")
+    f_dat.write(";\n")
+comando_glpk = ["glpsol", "-m", "parte-4.mod", "-d", archivo_dat]    
 
 corriendo_glpk = subprocess.run(comando_glpk, capture_output = True, text = True)
 
@@ -40,61 +55,48 @@ if corriendo_glpk.returncode != 0:
 resultados_raw = corriendo_glpk.stdout
 
 
+
+try:
+    num_restricciones = re.search(r"Rows:\s+(\d+)", resultados_raw).group(1)
+    num_variables = re.search(r"Columns:\s+(\d+)", resultados_raw).group(1)
+    val_objetivo = re.search(r"Objective:\s+.*=\s+([\d\.]+)", resultados_raw).group(1)
     
-    
-"""
-Aquí va el código que interpreta la salida y la convierte en un diccionario
-todavia no lo podemos programar porque no sabemos que forma tendrá la salida 
-
-
-
-
-
-
-
-
-"""
-#ejemplo de como podría verse resultados
-resultados = [
-    {"caja": 1, "pallet": 1, "nivel": 1, "fila": 1, "columna": 1},
-    {"caja": 2, "pallet": 1, "nivel": 1, "fila": 1, "columna": 2},
-    {"caja": 3, "pallet": 1, "nivel": 2, "fila": 1, "columna": 1}
-]
-
+    print(f"{num_variables} {num_restricciones} {val_objetivo}")
+except AttributeError:
+    pass
 almacen={}
 
-for x in resultados:
-    num_caja = x["caja"]
-    num_pallet = x["pallet"]
-    num_nivel = x["nivel"]
-    num_fila = x["fila"]
-    num_columna = x["columna"]
-    
-    if num_pallet not in almacen:
-        almacen [num_pallet] = {}
-    if num_nivel not in almacen[num_pallet]:
-        almacen[num_pallet][num_nivel]= {}
-    if num_fila not in almacen[num_pallet][num_nivel]:
-        almacen[num_pallet][num_nivel][num_fila] = {} 
-    
-     
-    almacen[num_pallet][num_nivel][num_fila][num_columna]=num_caja
-    
+for linea in resultados_raw.splitlines():
+    if linea.startswith("RES_CAJA"):
+        partes = linea.split()
+        caja = int(partes[1])
+        pallet = int(partes[2])
+        nivel = int(partes[3])
+        fila = int(partes[4])
+        columna = int(partes[5])
+        
+        if pallet not in almacen:
+            almacen[pallet] = {}
+        if nivel not in almacen[pallet]:
+            almacen[pallet][nivel] = {}
+        if fila not in almacen[pallet][nivel]:
+            almacen[pallet][nivel][fila] = {}
+            
+        almacen[pallet][nivel][fila][columna] = caja
 #codigo de salida y graficar
 
-with open(archivo_out, "w", encoding = "utf-8") as f_out:
-
-    for pallet, niveles in almacen.items():
-        f_out.write(f"---Pallet {pallet}---\n")
-        for nivel in range  (h,0,-1):
-            f_out.write(f" --Nivel {nivel}--\n")
+with open(archivo_out, "w", encoding="utf-8") as f_out:
+    for pallet in sorted(almacen.keys()):
+        f_out.write(f"--- Pallet {pallet} ---\n")
         
-            if nivel in niveles:
-                for fila, columnas in  niveles[nivel].items():
-                    for columna, caja in columnas.items():
-                        f_out.write(f"Caja {caja} en nivel {nivel} y coordenadas {fila}, {columna}\n ")
+        for nivel in range(h, 0, -1):
+            f_out.write(f" -- Nivel {nivel} --\n")
             
+            if nivel in almacen[pallet]:
+                for fila in sorted(almacen[pallet][nivel].keys()):
+                    for columna in sorted(almacen[pallet][nivel][fila].keys()):
+                        caja = almacen[pallet][nivel][fila][columna]
+                        f_out.write(f"Caja {caja} en coordenadas ({fila}, {columna})\n")
             else: 
                 f_out.write("Nivel vacío\n")
-
-f_out.write("\n")
+        f_out.write("\n")
