@@ -1,0 +1,24 @@
+/* Instancia de prueba: l = 2, h = 3  ->  n = 12 cajas
+   Pesos y capacidades en gramos.
+   La caja 12 tiene capacidad 0, así que solo puede ir en el nivel superior. */
+
+data;
+
+param l := 2;
+param h := 3;
+
+param : p    w    g :=
+   1    1  400  900
+   2    1  300  600
+   3    2  500 1200
+   4    2  200  300
+   5    3  600 1500
+   6    3  350  700
+   7    4  450 1000
+   8    4  250  400
+   9    5  700 1800
+  10    5  300  500
+  11    6  550 1100
+  12    6  150    0 ;
+
+end;

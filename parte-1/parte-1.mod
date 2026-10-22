@@ -38,6 +38,9 @@ s.t. Orden { i in 1.. l-1, j in 1..l }: P[i,j] >= P[i+1,j];# restriccion que def
 
 /*Resolver*/
 solve;
-display COSTE_TOTAL_MEDIO;
+
+/*Salida de la solucion: lineas con prefijo fijo para que sol-1.py las lea facilmente*/
+printf "OBJ %.6f\n", COSTE_TOTAL_MEDIO; # valor de la funcion objetivo
+printf {k in CAJAS, i in FILAS, j in COLUMNAS: x[k,i,j] > 0.5} "SOL %d %d %d\n", k, i, j; # caja k colocada en la fila i, columna j
 end;
 

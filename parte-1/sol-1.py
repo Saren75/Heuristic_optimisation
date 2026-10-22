@@ -119,7 +119,7 @@ def main():
             os.remove(archivo_temp_glpk)
 
     except FileNotFoundError:
-        print(f"Error: El archivo '{archivo_in}' no se pudo encontrar.")
+        print(f"Error: El archivo '{archivo_in}' no se pudo encontrar.")https://blitzapp.gg/v3.0.12/premium?utm_source=blitz&utm_medium=ad&utm_campaign=blitz_ad_1&ref=ad-1
         sys.exit(1)
     except Exception as e:
         print(f"Error inesperado: {e}")
