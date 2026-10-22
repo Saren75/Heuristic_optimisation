@@ -25,9 +25,7 @@ with open(archivo_in, "r", encoding="utf-8") as fichero:
 
 with open(archivo_dat, "w", encoding="utf-8") as f_dat:
     f_dat.write(f"param l := {l};\n")
-    f_dat.write(f"param n := {n};\n\n")
-
-    f_dat.write("param p := \n")
+    f_dat.write("param prioridad := \n")
     for i, val in enumerate(prioridades_cajas, 1):
         f_dat.write(f"  {i} {val}\n")
     f_dat.write(";\n")
@@ -41,20 +39,20 @@ if corriendo_glpk.returncode != 0:
 
 resultados_raw = corriendo_glpk.stdout
 
-# Extracción de variables, restricciones y valor objetivo
+
 try:
-    num_restricciones = re.search(r"Rows:\s+(\d+)", resultados_raw).group(1)
-    num_variables = re.search(r"Columns:\s+(\d+)", resultados_raw).group(1)
-    val_objetivo = re.search(r"Objective:\s+.*=\s+([\d\.]+)", resultados_raw).group(1)
+    num_restricciones = re.search(r"(\d+)\s+rows", resultados_raw, re.IGNORECASE).group(1)
+    num_variables = re.search(r"(\d+)\s+columns", resultados_raw, re.IGNORECASE).group(1)
+    
+    val_objetivo = re.search(r"OBJ\s+([\d\.]+)", resultados_raw).group(1)
     
     print(f"{num_variables} {num_restricciones} {val_objetivo}")
 except AttributeError:
     pass
-
 almacen = {}
 
 for linea in resultados_raw.splitlines():
-    if linea.startswith("RES_CAJA"):
+    if linea.startswith("SOL"):
         partes = linea.split()
         caja = int(partes[1])
         fila = int(partes[2])
@@ -69,7 +67,7 @@ for linea in resultados_raw.splitlines():
 
 with open(archivo_out, "w", encoding="utf-8") as f_out:
     f_out.write("--- DISPOSICIÓN DEL PALLET (Parte 1) ---\n")
-    f_out.write("Punto de acceso por la parte inferior (Fila 1)\n\n")
+    f_out.write(f"Punto de acceso por la parte superior (Fila {l})\n\n")
     
     for fila in range(l, 0, -1):
         f_out.write(f"Fila {fila} | ")
