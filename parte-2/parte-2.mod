@@ -63,16 +63,7 @@ s.t. resistencia{i in I, j in J, m in 1..h-1}:
 solve;
 
 /* Salida */
-printf "\nCoste medio = %.4f\n", coste_medio;
-for {m in M} {
-    printf "\nNivel %d (filas de fondo a acceso)\n", m;
-    for {i in I} {
-        for {j in J} {
-            for {k in K: x[k,i,j,m] > 0.5} printf "  caja %2d", k;
-        }
-        printf "\n";
-    }
-}
-printf "\n";
-
+printf "OBJ %.6f\n", coste_medio;
+printf {k in K, i in I, j in J, m in M: x[k,i,j,m] > 0.5} 
+  "RES_CAJA %d %d %d %d\n", k, m, i, j;
 end;
