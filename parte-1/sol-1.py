@@ -1,129 +1,87 @@
-import sys
 import subprocess
+import sys
 import re
 import os
 
-def main():
-    if len(sys.argv) != 3:
-        print("Uso incorrecto. Formato esperado: python sol-1.py <fichero_entrada> <fichero_salida>")
-        sys.exit(1)    
+if len(sys.argv) != 3:
+    print("Uso: python sol-1.py <fichero_in> <fichero_dat>")
+    sys.exit(1)
     
-    archivo_in = sys.argv[1] 
-    archivo_out = sys.argv[2]
+archivo_in = sys.argv[1]
+archivo_dat = sys.argv[2]
+
+nombre_archivo = os.path.splitext(archivo_in)[0]
+archivo_out = f"{nombre_archivo}.out"
+
+with open(archivo_in, "r", encoding="utf-8") as fichero:
     
+    variables_pallet = fichero.readline().strip().split()
+    l = int(variables_pallet[0]) # longitud de pallet
     
-    base_nombre = os.path.splitext(archivo_out)[0]
-    archivo_dat = f"{base_nombre}.dat"
-    archivo_temp_glpk = f"{base_nombre}_glpk_out.txt"
+    prioridades_cajas = [int(x) for x in fichero.readline().strip().split()]
     
-    try:
-        with open(archivo_in, "r", encoding="utf-8") as f_in:
-            linea_lado = f_in.readline().strip()
-            if not linea_lado:
-                print("Error: El fichero de entrada está vacío")
-                sys.exit(1)
-                
-            l = int(linea_lado)  
-            
-            linea_prioridades = f_in.readline().strip()
-            prioridades = [int(p) for p in linea_prioridades.split()]
-            
-            if len(prioridades) != l * l:
-                print(f"Error: Se esperaban {l*l} prioridades, pero se leyeron {len(prioridades)}")
-                sys.exit(1)
+    # En la parte 1 el pallet se rellena siempre completamente (n = l^2)
+    n = len(prioridades_cajas)
 
-        with open(archivo_dat, "w", encoding="utf-8") as f_dat:
-            f_dat.write(f"param l := {l};\n\n")
-            f_dat.write("param prioridad :=\n")
-            for k in range(len(prioridades)):
-                f_dat.write(f"{k+1} {prioridades[k]}\n")
-            f_dat.write(";\n")
+with open(archivo_dat, "w", encoding="utf-8") as f_dat:
+    f_dat.write(f"param l := {l};\n")
+    f_dat.write(f"param n := {n};\n\n")
 
-        
-        comando_glpk = [
-            "glpsol", 
-            "-m", "parte-1.mod", 
-            "-d", archivo_dat, 
-            "-o", archivo_temp_glpk 
-        ]
-        
-        
-        resultado_proceso = subprocess.run(comando_glpk, capture_output=True, text=True)
-        salida_consola_glpk = resultado_proceso.stdout
-        
-        if resultado_proceso.returncode != 0:
-            print("Error durante la ejecución de GLPK:")
-            print(resultado_proceso.stderr)
-            sys.exit(1)
-
-        
-        num_variables = 0
-        num_restricciones = 0
-        valor_objetivo = 0.0
-        
-        match_vars = re.search(r"(\d+)\s+variables?", salida_consola_glpk)
-        if match_vars:
-            num_variables = match_vars.group(1)
-            
-        match_restr = re.search(r"(\d+)\s+constraints?", salida_consola_glpk)
-        if match_restr:
-            num_restricciones = match_restr.group(1)
-            
-        match_obj = re.search(r"Objective:\s+\w+\s+=\s+([+-]?\d+\.?\d*)", salida_consola_glpk)
-        if match_obj:
-            valor_objetivo = match_obj.group(1)
-            
-        print(f"{num_variables} {num_restricciones} {valor_objetivo}")
-
-        
-        matriz_solucion = [[0 for _ in range(l)] for _ in range(l)]
-        
-        with open(archivo_temp_glpk, "r") as f_sol:
-            for linea in f_sol:
-            
-                if "x[" in linea:
-        
-                    match_x = re.search(r"x\[(\d+),(\d+),(\d+)\]\s+\*?\s+([01])", linea)
-                    if match_x:
-                        k_val = int(match_x.group(1))
-                        i_val = int(match_x.group(2))
-                        j_val = int(match_x.group(3))
-                        valor_binario = int(match_x.group(4))
-                        
-                        if valor_binario == 1:
-                            prioridad_caja = prioridades[k_val - 1]
-                            matriz_solucion[i_val - 1][j_val - 1] = prioridad_caja
-
-        
-        with open(archivo_out, "w", encoding="utf-8") as f_out:
-            f_out.write("DISPOSICION DEL PALLET (Vista Cenital)\n")
-            f_out.write("======================================\n")
-            f_out.write("Punto de acceso por la parte SUPERIOR (Fila " + str(l) + ")\n\n")
-            
-
-            for i in range(l - 1, -1, -1):
-                f_out.write("Fila " + str(i+1) + " |")
-                for j in range(l):
-                    f_out.write(f" {matriz_solucion[i][j]:>4} |")
-                f_out.write("\n")
-                f_out.write("-------+" + "-" * (7 * l) + "\n")
-            
+    f_dat.write("param p := \n")
+    for i, val in enumerate(prioridades_cajas, 1):
+        f_dat.write(f"  {i} {val}\n")
+    f_dat.write(";\n")
     
-            f_out.write("       |")
-            for j in range(l):
-                f_out.write(f" Col{j+1:>2} |")
-            f_out.write("\n")
+comando_glpk = ["glpsol", "-m", "parte-1.mod", "-d", archivo_dat]    
 
+corriendo_glpk = subprocess.run(comando_glpk, capture_output=True, text=True)
+
+if corriendo_glpk.returncode != 0:
+    sys.exit(1)
+
+resultados_raw = corriendo_glpk.stdout
+
+# Extracción de variables, restricciones y valor objetivo
+try:
+    num_restricciones = re.search(r"Rows:\s+(\d+)", resultados_raw).group(1)
+    num_variables = re.search(r"Columns:\s+(\d+)", resultados_raw).group(1)
+    val_objetivo = re.search(r"Objective:\s+.*=\s+([\d\.]+)", resultados_raw).group(1)
+    
+    print(f"{num_variables} {num_restricciones} {val_objetivo}")
+except AttributeError:
+    pass
+
+almacen = {}
+
+for linea in resultados_raw.splitlines():
+    if linea.startswith("RES_CAJA"):
+        partes = linea.split()
+        caja = int(partes[1])
+        fila = int(partes[2])
+        columna = int(partes[3])
         
-        if os.path.exists(archivo_temp_glpk):
-            os.remove(archivo_temp_glpk)
+        if fila not in almacen:
+            almacen[fila] = {}
+            
+        almacen[fila][columna] = prioridades_cajas[caja - 1]
 
-    except FileNotFoundError:
-        print(f"Error: El archivo '{archivo_in}' no se pudo encontrar.")https://blitzapp.gg/v3.0.12/premium?utm_source=blitz&utm_medium=ad&utm_campaign=blitz_ad_1&ref=ad-1
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error inesperado: {e}")
-        sys.exit(1)
+#graficacion usando vista cenital
 
-if __name__ == "__main__":
-    main()
+with open(archivo_out, "w", encoding="utf-8") as f_out:
+    f_out.write("--- DISPOSICIÓN DEL PALLET (Parte 1) ---\n")
+    f_out.write("Punto de acceso por la parte inferior (Fila 1)\n\n")
+    
+    for fila in range(l, 0, -1):
+        f_out.write(f"Fila {fila} | ")
+        
+        if fila in almacen:
+            for columna in range(1, l + 1):
+                if columna in almacen[fila]:
+                    prioridad = almacen[fila][columna]
+                    f_out.write(f"[{prioridad:^4}] ")
+                else:
+                    f_out.write("[ -- ] ")
+        else:
+            f_out.write("[ -- ] " * l)
+            
+        f_out.write("\n")
