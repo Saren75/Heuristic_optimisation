@@ -4,7 +4,7 @@
 
 
 /*Parámetros*/
-param l;   #lado del pallet, parametro que viene dado en los datos
+param l, integer, >= 1;   #lado del pallet, parametro que viene dado en los datos
 param n := l^2;   #numero de cajas, se calcula con l al cuadrado
 
 
@@ -14,7 +14,7 @@ set CAJAS:=  1..n; #enumeracion de las cajas que sale de el numero de cajas que 
 set FILAS:= 1..l ;  # este set son las filas que van de 1 a l
 set COLUMNAS:= 1..l ;# este set son las columnas que van de 1 a l
 
-param prioridad {k in CAJAS}; # la prioridad dependiendo de cada caja
+param prioridad {k in CAJAS}, integer, >= 1; # la prioridad dependiendo de cada caja
 
 
 /*Variables */
@@ -32,8 +32,8 @@ minimize COSTE_TOTAL_MEDIO: 1/n * sum {i in FILAS, j in COLUMNAS, t in i+1..l} P
 /*Restricciones*/
 s.t. cajaporhueco {i in FILAS, j in COLUMNAS}: sum{k in CAJAS} x[k,i,j] = 1 ;#restriccion que hace que haya exactamente una caja en cada hueco asi no hay huecos vacios
 s.t. huecoporcaja {k in CAJAS}: sum{i in FILAS, j in COLUMNAS} x[k,i,j] = 1 ;#restriccion que hace que cada caja este en un hueco solo, no en varios huecos a la vez
+s.t. Orden {i in FILAS, j in COLUMNAS: i < l}: P[i,j] >= P[i+1,j];# restriccion que define la regla de orden por la que en una columna las cajas con mayor n de prioridad deben estar al fondo.
 s.t. defprioridad {i in FILAS, j in COLUMNAS}: P[i,j] = sum {k in CAJAS} prioridad[k]*x[k,i,j]; # restriccion para la variable P, es la regla que define la variable
-s.t. Orden { i in 1.. l-1, j in 1..l }: P[i,j] >= P[i+1,j];# restriccion que define la regla de orden por la que en una columna las cajas con mayor n de prioridad deben estar al fondo.
 
 
 /*Resolver*/
@@ -43,4 +43,3 @@ solve;
 printf "OBJ %.6f\n", COSTE_TOTAL_MEDIO; # valor de la funcion objetivo
 printf {k in CAJAS, i in FILAS, j in COLUMNAS: x[k,i,j] > 0.5} "SOL %d %d %d\n", k, i, j; # caja k colocada en la fila i, columna j
 end;
-
