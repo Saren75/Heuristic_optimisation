@@ -86,6 +86,13 @@ if corriendo_glpk.returncode != 0:
 
 resultados_raw = corriendo_glpk.stdout
 
+# en la parte 4 el modelo nunca deberia ser infactible, porque siempre se puede
+# abrir otro pallet, asi que si lo es conviene avisar en vez de callarlo
+salida = resultados_raw.upper()
+if "NO INTEGER FEASIBLE" in salida or "NO PRIMAL FEASIBLE" in salida or "INFEASIBLE" in salida:
+    print("glpsol declara el problema infactible, lo que en esta parte no deberia ocurrir.", file=sys.stderr)
+    sys.exit(1)
+
 busca_filas = re.search(r"(\d+)\s+rows", resultados_raw, re.IGNORECASE)
 busca_variables = re.search(r"(\d+)\s+columns", resultados_raw, re.IGNORECASE)
 busca_objetivo = re.search(r"OBJ\s+([\d\.]+)", resultados_raw)
