@@ -17,7 +17,7 @@ set COLUMNAS:= 1..l ;# este set son las columnas que van de 1 a l
 set NIVELES:= 1..h ;# este set son los niveles que van de 1 a h, el 1 es el de abajo y el h el de arriba
 
 param n := card(CAJAS); #numero de cajas, se saca del cardinal del set para que no pueda descuadrar con las listas de datos
-param q := ceil(n / l^2); #cota del numero de pallets que hacen falta, con q pallets siempre caben las n cajas usando solo el nivel 1 de cada uno
+param q := ceil(n / l); #cota del numero de pallets, no vale acotar por donde caben las cajas porque al optimo le puede convenir abrir mas pallets para que mas cajas queden en la fila de acceso, con ceil(n/l) se pueden poner l cajas por pallet en la fila de acceso del nivel 1 con coste de disposicion 0, asi que el optimo vale como mucho coste_palet*ceil(n/l) y ninguna solucion con mas pallets puede ser optima
 
 set PALETS:= 1..q ;# este set son los pallets disponibles, como mucho hacen falta q
 

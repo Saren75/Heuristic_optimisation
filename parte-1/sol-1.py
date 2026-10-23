@@ -42,7 +42,7 @@ if n != l * l:
 
 with open(archivo_dat, "w", encoding="utf-8") as f_dat:
     f_dat.write(f"param l := {l};\n\n")
-    f_dat.write("param p := \n")
+    f_dat.write("param prioridad := \n")
     for i, val in enumerate(prioridades_cajas, 1):
         f_dat.write(f"  {i} {val}\n")
     f_dat.write(";\n")
