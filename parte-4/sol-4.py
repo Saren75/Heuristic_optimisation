@@ -19,21 +19,30 @@ archivo_in = ruta(sys.argv[1])
 archivo_dat = ruta(sys.argv[2])
 archivo_mod = os.path.join(BASE, "parte-4.mod")
 
-nombre_archivo = os.path.splitext(archivo_in)[0]
-archivo_out = f"{nombre_archivo}.out"
+# El fichero de solucion grafica se deriva del SEGUNDO argumento (el de datos) y no
+# del de entrada. El enunciado permite que el fichero de datos lleve el nombre y la
+# extension que se quiera, de modo que derivarlo de la entrada puede hacer que el .out
+# sobrescriba al propio fichero de datos (p. ej. ./sol-N.py ejemplo.in ejemplo.out),
+# que el enunciado prohibe borrar. Si el fichero de datos ya termina en .out se usa .sol.
+raiz_salida, extension_datos = os.path.splitext(archivo_dat)
+archivo_out = f"{raiz_salida}.out" if extension_datos.lower() != ".out" else f"{raiz_salida}.sol"
 
 try:
     with open(archivo_in, "r", encoding="utf-8") as fichero:
 
-        variables_pallet = fichero.readline().strip().split()
+        # Se descartan las lineas en blanco para que una linea vacia intercalada no
+        # desplace la lectura de pesos y capacidades.
+        lineas = [linea for linea in fichero if linea.strip()]
+
+        variables_pallet = lineas[0].split()
 
         l = int(variables_pallet[0]) #longitud de pallet
         h = int(variables_pallet[1]) #numero maximo de niveles
         coste_palet = int(variables_pallet[2]) #coste de montar cada pallet
 
-        prioridades_cajas = [int(x) for x in fichero.readline().strip().split()]
-        pesos_cajas = [int(x) for x in fichero.readline().strip().split()]
-        capacidades_cajas = [int(x) for x in fichero.readline().strip().split()]
+        prioridades_cajas = [int(x) for x in lineas[1].split()]
+        pesos_cajas = [int(x) for x in lineas[2].split()]
+        capacidades_cajas = [int(x) for x in lineas[3].split()]
 
 except (OSError, ValueError, IndexError) as error:
     print(f"Error leyendo el fichero de entrada {archivo_in}: {error}", file=sys.stderr)
@@ -86,11 +95,15 @@ if corriendo_glpk.returncode != 0:
 
 resultados_raw = corriendo_glpk.stdout
 
-# en la parte 4 el modelo nunca deberia ser infactible, porque siempre se puede
-# abrir otro pallet, asi que si lo es conviene avisar en vez de callarlo
-salida = resultados_raw.upper()
-if "NO INTEGER FEASIBLE" in salida or "NO PRIMAL FEASIBLE" in salida or "INFEASIBLE" in salida:
-    print("glpsol declara el problema infactible, lo que en esta parte no deberia ocurrir.", file=sys.stderr)
+# GLPK anuncia la infactibilidad con dos prefijos distintos segun donde se detecte:
+# "PROBLEM HAS NO PRIMAL FEASIBLE SOLUTION" si la detecta el preprocesado y
+# "LP HAS NO PRIMAL FEASIBLE SOLUTION" si ya lo es la relajacion lineal. Se comprueba
+# el sufijo comun para reconocer ambos casos, y tambien el de la fase entera.
+salida_mayus = resultados_raw.upper()
+if ("HAS NO PRIMAL FEASIBLE SOLUTION" in salida_mayus
+        or "NO INTEGER FEASIBLE SOLUTION" in salida_mayus
+        or "HAS NO DUAL FEASIBLE SOLUTION" in salida_mayus):
+    print("El problema es infactible para esta instancia.", file=sys.stderr)
     sys.exit(1)
 
 busca_filas = re.search(r"(\d+)\s+rows", resultados_raw, re.IGNORECASE)
